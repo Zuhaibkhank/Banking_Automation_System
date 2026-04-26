@@ -2,20 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register - Banking System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register – VaultBank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="form-container">
-        <h2>Create Account</h2>
-        <form method="POST">
-            <input type="text" name="name" placeholder="Full Name" required>
-            <input type="text" name="account_number" placeholder="Account Number" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <input type="number" name="balance" placeholder="Initial Balance" required>
-            <button type="submit">Register</button>
-        </form>
-        <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+    <div class="bg-grid"></div>
+    <div class="page-center">
+        <div class="card">
+            <div class="card-header">
+                <div class="logo">🏦</div>
+                <h1>VaultBank</h1>
+                <p class="subtitle">Open a new account</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="auth-form">
+                <div class="field">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name"
+                           placeholder="Rajesh Kumar" required minlength="2">
+                </div>
+                <div class="field">
+                    <label for="account_number">Account Number</label>
+                    <input type="text" id="account_number" name="account_number"
+                           placeholder="6-20 alphanumeric chars" required
+                           pattern="[A-Za-z0-9]{6,20}" title="6-20 alphanumeric characters">
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password"
+                           placeholder="Min 6 characters" required minlength="6"
+                           autocomplete="new-password">
+                </div>
+                <div class="field">
+                    <label for="balance">Initial Deposit (₹)</label>
+                    <input type="number" id="balance" name="balance"
+                           placeholder="0.00" min="0" step="0.01" required>
+                </div>
+                <button type="submit" class="btn-primary">Create Account →</button>
+            </form>
+
+            <p class="switch-link">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
+        </div>
     </div>
 </body>
 </html>

@@ -1,4 +1,4 @@
-flask
-pymongo
-dnspython
-
+flask>=2.3.0
+pymongo>=4.0.0
+dnspython>=2.3.0
+werkzeug>=2.3.0

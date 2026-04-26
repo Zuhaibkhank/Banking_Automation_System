@@ -2,25 +2,61 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Banking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard – VaultBank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <div class="dashboard">
-        <h2>Welcome, {{ user.name }}</h2>
-        <p><strong>Account Number:</strong> {{ user.account_number }}</p>
-        <p><strong>Current Balance:</strong> ₹{{ user.balance }}</p>
+<body class="dashboard-body">
+    <div class="bg-grid"></div>
 
-        <form method="POST">
-            <input type="number" name="amount" placeholder="Enter amount" required>
-            <select name="action">
-                <option value="deposit">Deposit</option>
-                <option value="withdraw">Withdraw</option>
-            </select>
-            <button type="submit">Submit</button>
-        </form>
-        <br>
-        <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+    <nav class="topbar">
+        <div class="brand">🏦 VaultBank</div>
+        <a href="{{ url_for('logout') }}" class="logout-btn">Sign Out</a>
+    </nav>
+
+    <div class="dash-wrap">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Balance Hero -->
+        <div class="balance-hero">
+            <p class="balance-label">Current Balance</p>
+            <h2 class="balance-amount">₹{{ "%.2f"|format(user.balance) }}</h2>
+            <div class="account-meta">
+                <span>{{ user.name }}</span>
+                <span class="sep">·</span>
+                <span>Acct: {{ user.account_number }}</span>
+            </div>
+        </div>
+
+        <!-- Transaction Card -->
+        <div class="card transaction-card">
+            <h3>Make a Transaction</h3>
+            <form method="POST" class="tx-form">
+                <div class="field">
+                    <label for="amount">Amount (₹)</label>
+                    <input type="number" id="amount" name="amount"
+                           placeholder="0.00" min="0.01" step="0.01" required>
+                </div>
+                <div class="tx-actions">
+                    <button type="submit" name="action" value="deposit" class="btn-deposit">
+                        ↑ Deposit
+                    </button>
+                    <button type="submit" name="action" value="withdraw" class="btn-withdraw">
+                        ↓ Withdraw
+                    </button>
+                </div>
+            </form>
+        </div>
+
     </div>
 </body>
 </html>
