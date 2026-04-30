@@ -5,20 +5,30 @@ import os
 import re
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 
-# Connect to MongoDB
-MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/')
+# SECRET KEY (important for sessions)
+app.secret_key = os.environ.get('SECRET_KEY', 'supersecretkey')
+
+
+# ================== MONGODB CONNECTION ==================
+MONGO_URI = os.environ.get('MONGO_URI')
+
+if not MONGO_URI:
+    raise Exception("MONGO_URI not set in environment variables")
+
 client = MongoClient(MONGO_URI)
-db = client['banking_system']
+
+# Database (IMPORTANT: same as Atlas)
+db = client['bankDB']
 users = db['users']
 
-# Ensure unique index on account_number
+# Unique index
 users.create_index('account_number', unique=True)
 
 
+# ================== HELPER FUNCTIONS ==================
+
 def validate_account_number(acc):
-    """Account number: 6-20 alphanumeric characters."""
     return bool(re.match(r'^[A-Za-z0-9]{6,20}$', acc))
 
 
@@ -27,6 +37,8 @@ def get_logged_in_user():
         return None
     return users.find_one({'account_number': session['account_number']})
 
+
+# ================== ROUTES ==================
 
 @app.route('/')
 def home():
@@ -41,7 +53,7 @@ def register():
         password = request.form.get('password', '')
         balance_str = request.form.get('balance', '0')
 
-        # Validate inputs
+        # Validation
         if not name or len(name) < 2:
             flash('Name must be at least 2 characters.', 'error')
             return render_template('register.html')
@@ -62,12 +74,12 @@ def register():
             flash('Initial balance must be a non-negative number.', 'error')
             return render_template('register.html')
 
-        # Check duplicate
+        # Duplicate check
         if users.find_one({'account_number': account_number}):
-            flash('Account number already exists. Choose another.', 'error')
+            flash('Account number already exists.', 'error')
             return render_template('register.html')
 
-        # Hash password before storing
+        # Hash password
         hashed_pw = generate_password_hash(password)
 
         users.insert_one({
@@ -77,7 +89,7 @@ def register():
             'balance': round(balance, 2)
         })
 
-        flash('Account created successfully! Please log in.', 'success')
+        flash('Account created successfully!', 'success')
         return redirect(url_for('login'))
 
     return render_template('register.html')
@@ -94,13 +106,12 @@ def login():
 
         user = users.find_one({'account_number': account_number})
 
-        # check_password_hash prevents timing attacks
         if user and check_password_hash(user['password'], password):
             session['account_number'] = user['account_number']
-            flash(f"Welcome back, {user['name']}!", 'success')
+            flash(f"Welcome {user['name']}!", 'success')
             return redirect(url_for('dashboard'))
 
-        flash('Invalid account number or password.', 'error')
+        flash('Invalid credentials.', 'error')
         return render_template('login.html')
 
     return render_template('login.html')
@@ -109,8 +120,9 @@ def login():
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     user = get_logged_in_user()
+
     if not user:
-        flash('Please log in to continue.', 'error')
+        flash('Please login first.', 'error')
         return redirect(url_for('login'))
 
     if request.method == 'POST':
@@ -122,7 +134,7 @@ def dashboard():
             if amount <= 0:
                 raise ValueError
         except ValueError:
-            flash('Amount must be a positive number.', 'error')
+            flash('Enter valid amount.', 'error')
             return redirect(url_for('dashboard'))
 
         amount = round(amount, 2)
@@ -132,25 +144,22 @@ def dashboard():
                 {'account_number': user['account_number']},
                 {'$inc': {'balance': amount}}
             )
-            flash(f'₹{amount:,.2f} deposited successfully.', 'success')
+            flash(f'₹{amount} deposited.', 'success')
 
         elif action == 'withdraw':
-            # Fresh read to avoid stale balance
             fresh_user = users.find_one({'account_number': user['account_number']})
+
             if fresh_user['balance'] < amount:
-                flash('Insufficient balance for withdrawal.', 'error')
+                flash('Insufficient balance.', 'error')
             else:
                 users.update_one(
                     {'account_number': user['account_number']},
                     {'$inc': {'balance': -amount}}
                 )
-                flash(f'₹{amount:,.2f} withdrawn successfully.', 'success')
-        else:
-            flash('Invalid action.', 'error')
+                flash(f'₹{amount} withdrawn.', 'success')
 
         return redirect(url_for('dashboard'))
 
-    # Fresh read on GET
     user = users.find_one({'account_number': session['account_number']})
     return render_template('dashboard.html', user=user)
 
@@ -158,10 +167,11 @@ def dashboard():
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('You have been logged out.', 'success')
+    flash('Logged out successfully.', 'success')
     return redirect(url_for('login'))
 
 
+# ================== RUN APP ==================
 if __name__ == '__main__':
-    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
-    app.run(debug=debug_mode)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
