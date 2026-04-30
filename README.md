@@ -7,6 +7,10 @@ It allows users to create accounts, deposit/withdraw money, and manage transacti
 
 ---
 
+## 🌐 Live Demo
+
+[![Live Demo](https://img.shields.io/badge/Live%20Website-Click%20Here-green?style=for-the-badge)](https://banking-automation-system.onrender.com/)
+
 ## 🚀 Features
 
 * 👤 User account creation
