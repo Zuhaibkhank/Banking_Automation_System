@@ -132,7 +132,10 @@ gunicorn app:app
 
 ## 📸 Screenshots
 
-(Add your project screenshots here for better presentation)
+<img width="1920" height="1020" alt="Screenshot 2026-05-19 211610" src="https://github.com/user-attachments/assets/5b5d2cff-9aca-4596-bbe7-258cd95abe04" />
+
+<img width="1920" height="1020" alt="Screenshot 2026-05-19 211624" src="https://github.com/user-attachments/assets/f5304ef1-953a-4a71-93e2-0686b8fbfb16" />
+
 
 ---
 
